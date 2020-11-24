@@ -11,7 +11,7 @@ import pandas as pd
 from mlxtend.frequent_patterns import apriori, association_rules
 
 #importar dataset
-data = pd.read_csv('onretail3.csv', encoding = 'unicode_escape')
+data = pd.read_csv('onretail6.csv', encoding = 'unicode_escape')
 data.head()
 
 #mostrar columnas de dataset
@@ -39,7 +39,7 @@ data = data[~data['NRO_FACT'].str.contains('C')]
 data.DISTRITO.unique()
 
 #creando nueva tabla solo por distrito y con los campos necesarios
-basket_BARRANCO = (data[data['DISTRITO'] =="BARRANCO"] 
+basket_JESUSM = (data[data['DISTRITO'] =="JESUS MARIA"] 
           .groupby(['NRO_FACT', 'DESC_PROD'])['CANTIDAD'] 
           .sum().unstack().reset_index().fillna(0) 
           .set_index('NRO_FACT'))
@@ -53,17 +53,17 @@ def hot_encode(x):
         return 1
     
 
-basket_encoded = basket_BARRANCO.applymap(hot_encode) 
-basket_BARRANCO = basket_encoded
+basket_encoded = basket_JESUSM.applymap(hot_encode) 
+basket_JESUSM = basket_encoded
 
 
 #mostrar data final para barranco antes de modelo
-basket_BARRANCO.head()
+basket_JESUSM.head()
 
 #MODELO
 
 #aplicando el algoritmo apriori
-frq_items = apriori(basket_BARRANCO, min_support = 0.1, use_colnames = True) 
+frq_items = apriori(basket_JESUSM, min_support = 0.1, use_colnames = True) 
   
 #extraer association rules del algoritmo apriori
 rules = association_rules(frq_items, metric ="lift", min_threshold = 1) 
@@ -71,3 +71,4 @@ rules = rules.sort_values(['confidence', 'lift'], ascending =[False, False])
 
 #mostrar tabla de antecedentes con su respectivo consecuente y las estadisticas de cada variable que dan las assotiation rules
 print(rules.head())
+#rules.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\arules.csv')

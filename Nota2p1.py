@@ -11,7 +11,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #Importar base de datos
-bd1 = pd.read_csv('onretail3.csv', encoding = 'unicode_escape')
+bd1 = pd.read_csv('onretail6.csv', encoding = 'unicode_escape')
 bd1.head()
 
 #ver tamaño de dataset
@@ -22,7 +22,7 @@ dist_distrital=bd1[['DISTRITO','COD_CLIENTE']].drop_duplicates()
 dist_distrital.groupby(['DISTRITO'])['COD_CLIENTE'].aggregate('count').reset_index().sort_values('COD_CLIENTE', ascending=False)
 
 #Solo utilizamos la información de JM
-bd1 = bd1.query("DISTRITO=='BARRANCO'").reset_index(drop=True)
+bd1 = bd1.query("DISTRITO=='JESUS MARIA'").reset_index(drop=True)
 
 #Se comprueba los vablores
 bd1.isnull().sum(axis=0)
@@ -52,6 +52,7 @@ bd1.shape
 
 bd1.head()
 
+#bd1.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\bd1_tabla.csv')
 #Modelo RFM
 
 #Recency = Ultima fecha de factura - Ultima información de compra, Frecuency = Conteo de número de facturas, Monetary= Suma total de gastos por cliente
@@ -126,14 +127,15 @@ def FnMScoring(x,p,d):
     elif x <= d[p][0.75]: 
         return 2
     else:
-        return 1
+        return 1 
 
 #Calculo de los segmentos y adicion en dataset
 RFMScores['R'] = RFMScores['Recency'].apply(RScoring, args=('Recency',quantiles,))
 RFMScores['F'] = RFMScores['Frequency'].apply(FnMScoring, args=('Frequency',quantiles,))
 RFMScores['M'] = RFMScores['Monetary'].apply(FnMScoring, args=('Monetary',quantiles,))
 RFMScores.head()
-
+RFMScores
+#RFMScores.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\RFM2.csv')
 #Calcular y agregar valor de RFM en una columna enseñando la suma de los valores
 RFMScores['RFMGroup'] = RFMScores.R.map(str) + RFMScores.F.map(str) + RFMScores.M.map(str)
 
@@ -147,10 +149,12 @@ Score_cuts = pd.qcut(RFMScores.RFMScore, q = 4, labels = Loyalty_Level)
 RFMScores['RFM_Loyalty_Level'] = Score_cuts.values
 RFMScores.reset_index().head()
 RFMScores[RFMScores['RFMGroup']=='123'].sort_values('Monetary', ascending=False).reset_index().head(10)
+#RFMScores.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\FIDELIDAD.csv')
+
 import chart_studio as cs
 import plotly.offline as po
 import plotly.graph_objs as gobj
-conda install -c plotly chart-studio
+#conda install -c plotly chart-studio
 #Recency Vs Frequency
 graph = RFMScores.query("Monetary < 50000 and Frequency < 2000")
 
@@ -379,18 +383,22 @@ plt.title('Elbow Method For Optimal k')
 plt.show()
 
 #Segmentacion k-means
-KMean_clust = KMeans(n_clusters= 3, init= 'k-means++', max_iter= 1000)
+KMean_clust = KMeans(n_clusters= 4, init= 'k-means++', max_iter= 1000)
 KMean_clust.fit(Scaled_Data)
 
 #Encontrar clusters ideales para el dataset
 RFMScores['Cluster'] = KMean_clust.labels_
 RFMScores.head()
+print(RFMScores)
+#pip install tabulate
+print(KMean_clust.labels_)
+print(KMean_clust.cluster_centers_)
+print(KMean_clust.inertia_)
 
-from matplotlib import pyplot as plt
-plt.figure(figsize=(7,7))
+
 
 ##Grafico plot de Frecuency vs Recency
-Colors = ["red", "green", "blue"]
+Colors = ["red", "green", "blue", "yellow"]
 RFMScores['Color'] = RFMScores['Cluster'].map(lambda p: Colors[p])
 ax = RFMScores.plot(    
     kind="scatter", 
@@ -401,3 +409,7 @@ ax = RFMScores.plot(
 
 RFMScores.head()
 RFMScores
+RFMScores.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\clusterfinal.csv')
+RFMScores['Color'] = "red"
+print(RFMScores)
+RFMScores.to_csv(r'C:\Users\Alejandro\Documents\PYTHON\prueba0\clusterred.csv')
